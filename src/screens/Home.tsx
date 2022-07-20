@@ -18,7 +18,7 @@ import { firestoreDateFormat } from "../utils/firestoreDateFormat";
 
 import { Button } from "../components/Button";
 import { Filter } from "../components/Filter";
-import { OrderCard, Order } from "../components/Order";
+import { OrderCard, Order } from "../components/OrderCard";
 
 import Logo from "../assets/logo_secondary.svg";
 import { Loading } from "../components/Loading";

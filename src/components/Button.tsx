@@ -11,10 +11,7 @@ export const Button = ({ text, ...rest }: ButtonProps) => {
       h={14}
       fontSize="sm"
       rounded="sm"
-      _pressed={{
-        bg: "green.500",
-      }}
-      w="full"
+      _pressed={{ bg: "green.500" }}
       {...rest}
     >
       <Heading color="white" fontSize="sm">
