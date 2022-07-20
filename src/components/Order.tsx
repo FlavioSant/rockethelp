@@ -45,7 +45,7 @@ export const OrderCard = ({ order, ...rest }: OrderCardProps) => {
 
         <VStack flex={1} my={5} ml={5}>
           <Text color="white" fontSize="md">
-            {order.status}
+            Patrimônio: {order.patrimony}
           </Text>
 
           <HStack alignItems="center">

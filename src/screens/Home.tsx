@@ -1,5 +1,3 @@
-import { useState } from "react";
-import auth from "@react-native-firebase/auth";
 import {
   Center,
   FlatList,
@@ -10,27 +8,26 @@ import {
   useTheme,
   VStack,
 } from "native-base";
-import { ChatTeardropText, SignOut } from "phosphor-react-native";
+import { Alert } from "react-native";
+import { useEffect, useState } from "react";
+import auth from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
+import { ChatTeardropText, SignOut } from "phosphor-react-native";
+import { firestoreDateFormat } from "../utils/firestoreDateFormat";
 
 import { Button } from "../components/Button";
 import { Filter } from "../components/Filter";
 import { OrderCard, Order } from "../components/Order";
 
 import Logo from "../assets/logo_secondary.svg";
-import { Alert } from "react-native";
+import { Loading } from "../components/Loading";
 
 export const Home = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "1",
-      patrimony: "789",
-      status: "open",
-      when: "10/07/2022",
-    },
-  ]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [statusSelected, setStatusSelected] = useState<"open" | "closed">(
     "open"
   );
@@ -53,6 +50,32 @@ export const Home = () => {
         return Alert.alert("Sair", "Não foi possível sair.");
       });
   };
+
+  useEffect(() => {
+    setIsLoading(true);
+
+    const subscriber = firestore()
+      .collection("orders")
+      .where("status", "==", statusSelected)
+      .onSnapshot((snapshot) => {
+        const data = snapshot.docs.map((doc) => {
+          const { patrimony, description, status, created_at } = doc.data();
+
+          return {
+            id: doc.id,
+            patrimony,
+            description,
+            status,
+            when: firestoreDateFormat(created_at),
+          };
+        });
+
+        setOrders(data);
+        setIsLoading(false);
+      });
+
+    return subscriber;
+  }, [statusSelected]);
 
   return (
     <VStack flex={1} pb={6} bg="gray.700">
@@ -99,27 +122,31 @@ export const Home = () => {
           />
         </HStack>
 
-        <FlatList
-          data={orders}
-          keyExtractor={({ id }) => id}
-          renderItem={({ item }) => (
-            <OrderCard
-              order={item}
-              onPress={() => handleOpenDetails(item.id)}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          ListEmptyComponent={() => (
-            <Center>
-              <ChatTeardropText size={40} color={colors.gray[300]} />
-              <Text color="gray.300" fontSize="xl" mt={6} textAlign="center">
-                Você ainda não possui {"\n"} solicitações{" "}
-                {statusSelected === "open" ? "em andamento" : "finalizadas"}
-              </Text>
-            </Center>
-          )}
-        />
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <FlatList
+            data={orders}
+            keyExtractor={({ id }) => id}
+            renderItem={({ item }) => (
+              <OrderCard
+                order={item}
+                onPress={() => handleOpenDetails(item.id)}
+              />
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={() => (
+              <Center>
+                <ChatTeardropText size={40} color={colors.gray[300]} />
+                <Text color="gray.300" fontSize="xl" mt={6} textAlign="center">
+                  Você ainda não possui {"\n"} solicitações{" "}
+                  {statusSelected === "open" ? "em andamento" : "finalizadas"}
+                </Text>
+              </Center>
+            )}
+          />
+        )}
 
         <Button text="Nova solicitação" onPress={handleNewOrder} />
       </VStack>
