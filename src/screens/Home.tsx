@@ -1,4 +1,5 @@
 import { useState } from "react";
+import auth from "@react-native-firebase/auth";
 import {
   Center,
   FlatList,
@@ -17,6 +18,7 @@ import { Filter } from "../components/Filter";
 import { OrderCard, Order } from "../components/Order";
 
 import Logo from "../assets/logo_secondary.svg";
+import { Alert } from "react-native";
 
 export const Home = () => {
   const { colors } = useTheme();
@@ -43,6 +45,15 @@ export const Home = () => {
     });
   };
 
+  const handleLogout = () => {
+    auth()
+      .signOut()
+      .catch((error) => {
+        console.log(error);
+        return Alert.alert("Sair", "Não foi possível sair.");
+      });
+  };
+
   return (
     <VStack flex={1} pb={6} bg="gray.700">
       <HStack
@@ -55,7 +66,10 @@ export const Home = () => {
         px={6}
       >
         <Logo />
-        <IconButton icon={<SignOut size={26} color={colors.gray["300"]} />} />
+        <IconButton
+          onPress={handleLogout}
+          icon={<SignOut size={26} color={colors.gray["300"]} />}
+        />
       </HStack>
 
       <VStack flex={1} px={6}>

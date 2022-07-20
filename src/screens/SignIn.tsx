@@ -1,20 +1,50 @@
-import { Heading, Icon, useTheme, VStack } from "native-base";
-import { Envelope, Key } from "phosphor-react-native";
+import auth from "@react-native-firebase/auth";
+
 import { useState } from "react";
+import { Alert } from "react-native";
+import { Envelope, Key } from "phosphor-react-native";
+import { Heading, Icon, useTheme, VStack } from "native-base";
+
+import { Input } from "../components/Input";
+import { Button } from "../components/Button";
 
 import Logo from "../assets/logo_primary.svg";
-import { Button } from "../components/Button";
-import { Input } from "../components/Input";
 
 export const SignIn = () => {
   const { colors } = useTheme();
+  const [isSubmiting, setIsSubmiting] = useState(false);
   const [fields, setFields] = useState({
-    name: "",
+    email: "",
     password: "",
   });
 
   const handleSignIn = () => {
-    console.log(fields);
+    if (!fields.email || !fields.password) {
+      return Alert.alert("Entrar", "Informe o E-mail e Senha.");
+    }
+
+    setIsSubmiting(true);
+
+    auth()
+      .signInWithEmailAndPassword(fields.email, fields.password)
+      .catch((error) => {
+        console.log(error);
+        setIsSubmiting(false);
+
+        if (error.code === "auth/invalid-email") {
+          return Alert.alert("Entrar", "E-mail inválido.");
+        }
+
+        if (error.code === "auth/wrong-password") {
+          return Alert.alert("Entrar", "E-mail e/ou senha incorreto(s).");
+        }
+
+        if (error.code === "auth/user-not-found") {
+          return Alert.alert("Entrar", "Usuário não cadastrado.");
+        }
+
+        return Alert.alert("Entrar", "Não foi possível acessar.");
+      });
   };
 
   return (
@@ -28,8 +58,8 @@ export const SignIn = () => {
         mb={4}
         placeholder="E-mail"
         keyboardType="email-address"
-        value={fields.name}
-        onChangeText={(text) => setFields({ ...fields, name: text })}
+        value={fields.email}
+        onChangeText={(text) => setFields({ ...fields, email: text })}
         InputLeftElement={
           <Icon as={<Envelope size={24} color={colors.gray[300]} />} ml={4} />
         }
@@ -44,7 +74,7 @@ export const SignIn = () => {
           <Icon as={<Key size={24} color={colors.gray[300]} />} ml={4} />
         }
       />
-      <Button text="Entrar" onPress={handleSignIn} />
+      <Button text="Entrar" onPress={handleSignIn} isLoading={isSubmiting} />
     </VStack>
   );
 };
